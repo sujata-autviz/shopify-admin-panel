@@ -11,3 +11,19 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+main {
+  margin-left: 0px !important;
+}
+.token-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.token-cell svg {
+    font-size: 21px;
+}
+.pagination-no {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

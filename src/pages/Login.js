@@ -1,24 +1,22 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { TextField, Button, Paper, Typography, Box, Container, Alert } from '@mui/material';
 import { login } from '../services/authService';
 import { AuthContext } from '../context/AuthContext';
-import styled from 'styled-components';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
-const StyledPaper = styled(Paper)`
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
-`;
+
+
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,8 +31,6 @@ const Login = () => {
     
     try {
       const response = await login(username, password);
-      
-      // Create user object with token and username
       const userData = {
         username,
         token: response.access_token,
@@ -51,64 +47,128 @@ const Login = () => {
     }
   };
 
-  return (
-    <Container component="main" maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <StyledPaper>
-          <Typography component="h1" variant="h4" sx={{ mb: 3 }}>
-            Mavexa Admin
-          </Typography>
-          
-          {error && <Alert severity="error" sx={{ width: '100%', mb: 2 }}>{error}</Alert>}
-          
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="username"
-              label="Username"
-              name="username"
-              autoComplete="username"
-              autoFocus
+  const handleTogglePassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+    return (
+    <div style={styles.wrapper}>
+      <div style={styles.container}>
+        <h1 style={styles.heading}>Mavexa Admin</h1>
+
+        {error && <div style={styles.error}>{error}</div>}
+
+        <form onSubmit={handleSubmit}>
+          <div style={styles.field}>
+            <label style={styles.label}>Username</label>
+            <input
+              type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-            />
-            <TextField
-              margin="normal"
               required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              style={styles.input}
             />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2, py: 1.5 }}
-              disabled={loading}
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Button>
-          </Box>
-        </StyledPaper>
-      </Box>
-    </Container>
+          </div>
+
+          <div style={styles.field}>
+            <label style={styles.label}>Password</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={styles.input}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={styles.toggle}
+              >
+                  {showPassword ? <VisibilityOff sx={{ fill: '#000', fontSize: 22 }} /> : <Visibility sx={{ fill: '#000', fontSize: 22 }} />}
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" disabled={loading} style={styles.button}>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 };
 
+const styles = {
+  wrapper: {
+    background: 'linear-gradient(180deg, #006ed5, #002254)',
+    minHeight: '100vh',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  container: {
+    width: '100%',
+    maxWidth: '400px',
+    backgroundColor: '#fff',
+    padding: '2rem',
+    borderRadius: '7px',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+  },
+  label: {
+    marginBottom: '3px',
+    display: 'block',
+    fontSize: '14px',
+  },
+  heading: {
+    fontSize: '28px',
+    fontWeight: '600',
+    textAlign: 'center',
+    margin: '0 0 25px',
+  },
+  field: {
+    marginBottom: '10px',
+  },
+  input: {
+    width: '100%',
+    padding: '10px',
+    fontSize: '1rem',
+    borderRadius: '6px',
+    border: '1px solid #ccc',
+  },
+  toggle: {
+    position: 'absolute',
+    right: '10px',
+    top: '7px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    color: '#007bff',
+  },
+  button: {
+    width: '100%',
+    padding: '12px',
+    fontSize: '1rem',
+    background: 'linear-gradient(rgb(0, 110, 213), rgb(0, 34, 84))',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    marginTop: '20px',
+  },
+  error: {
+    backgroundColor: '#ffebee',
+    color: '#d32f2f',
+    padding: '10px',
+    marginBottom: '15px',
+    borderRadius: '6px',
+    fontSize: '0.9rem',
+  },
+};
+
 export default Login;
+
+
+
 
 
