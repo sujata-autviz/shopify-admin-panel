@@ -360,13 +360,13 @@ const ChatHistory = () => {
       marginTop: 64,
     },
     spinner: {
-      border: "4px solid #ccc",
-      borderTop: "4px solid #1976d2",
-      borderRadius: "50%",
-      width: 40,
-      height: 40,
-      animation: "spin 1s linear infinite",
-    },
+    border: "4px solid #ccc",
+    borderTop: "4px solid #1976d2", 
+    borderRadius: "50%",
+    width: 40,
+    height: 40,
+    animation: "spin 1s linear infinite",
+  },
   };
 
   if (loading && initialLoad) {
