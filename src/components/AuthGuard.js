@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { getToken } from '../services/authService';
 
 const AuthGuard = ({ children }) => {
-  const { user, loading } = useContext(AuthContext);
+  const {loading } = useContext(AuthContext);
   const location = useLocation();
   const token = getToken();
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { getToken } from '../services/authService';
-
+import PropTypes from 'prop-types';
 const LoginGuard = ({ children }) => {
   const token = getToken();
 
@@ -12,5 +12,7 @@ const LoginGuard = ({ children }) => {
 
   return children;
 };
-
+LoginGuard.propTypes = {
+  children: PropTypes.node.isRequired,
+};
 export default LoginGuard;

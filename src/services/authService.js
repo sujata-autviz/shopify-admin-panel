@@ -1,9 +1,9 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_URL = 'https://mavexa.autsync.info/admin';
+const API_URL = process.env.REACT_APP_API_URL || 'https://mavexa.autsync.info/admin';
 const TOKEN_KEY = 'auth_token';
-const TOKEN_EXPIRY = 1; // 1 day in days
+const TOKEN_EXPIRY = 1; 
 
 export const login = async (username, password) => {
   try {
@@ -13,10 +13,7 @@ export const login = async (username, password) => {
     });
     
     if (response.data.access_token) {
-      // Store token in cookie with 24 hour expiry
       Cookies.set(TOKEN_KEY, response.data.access_token, { expires: TOKEN_EXPIRY });
-      
-      // Store user data in localStorage for user info
       const userData = {
         username,
         token: response.data.access_token,
@@ -56,4 +53,5 @@ export const setAuthHeader = (token) => {
     delete axios.defaults.headers.common['Authorization'];
   }
 };
+
 

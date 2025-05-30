@@ -1,10 +1,14 @@
 import React, { useContext } from 'react';
 import { AppBar, Toolbar, Typography, IconButton, Box, Avatar } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import { useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-
+import { getPageTitle } from '../utils/navigation';
 const Navbar = ({ toggleSidebar }) => {
   const { user } = useContext(AuthContext);
+  const location = useLocation();
+
+   const title = getPageTitle(location.pathname);
   
   return (
     <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
@@ -19,7 +23,7 @@ const Navbar = ({ toggleSidebar }) => {
           <MenuIcon />
         </IconButton>
         <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-          Mavexa Admin Dashboard
+          {title}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography variant="body2" sx={{ mr: 2 }}>

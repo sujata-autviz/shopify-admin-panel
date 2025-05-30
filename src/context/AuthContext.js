@@ -1,6 +1,5 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect,useMemo } from 'react';
 import { getCurrentUser, getToken, setAuthHeader } from '../services/authService';
-
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -8,14 +7,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if token exists in cookies
-    const token = getToken();
-    
+    const token = getToken()
     if (token) {
-      // Set axios auth header
       setAuthHeader(token);
-      
-      // Get user data from localStorage
       const userData = getCurrentUser();
       setUser(userData);
     }
@@ -23,20 +17,17 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Update auth header when user changes
-  useEffect(() => {
-    if (user && user.token) {
-      setAuthHeader(user.token);
-    } else {
-      setAuthHeader(null);
-    }
-  }, [user]);
+useEffect(() => {
+  setAuthHeader(user?.token ?? null);
+}, [user]);
 
-  return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+ const value = useMemo(() => ({ user, setUser, loading }), [user, setUser, loading]);
+
+return (
+  <AuthContext.Provider value={value}>
+    {children}
+  </AuthContext.Provider>
+);
 };
 
 
