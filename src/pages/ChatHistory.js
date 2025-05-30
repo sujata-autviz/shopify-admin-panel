@@ -121,26 +121,6 @@ const ChatHistory = () => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-      });
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "Invalid Date";
-    }
-  };
-
   const toggleResponseExpand = (chatId) => {
     setExpandedResponses((prev) => ({
       ...prev,
