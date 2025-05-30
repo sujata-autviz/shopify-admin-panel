@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getStores, getChatHistory } from "../services/storeService";
-
+import DOMPurify from 'dompurify';
 const ChatHistory = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [stores, setStores] = useState([]);
@@ -195,7 +195,7 @@ const ChatHistory = () => {
     // Format line breaks
     formattedText = formattedText.replace(/\n/g, "<br />");
 
-    return formattedText;
+   return DOMPurify.sanitize(formattedText);
   };
   const styles = {
     // Add these to your styles object
@@ -313,7 +313,6 @@ const ChatHistory = () => {
       alignItems: "center",
     },
     messageBubble: {
-      padding: 12,
       borderRadius: 8,
       padding: "6px 12px",
       fontSize: 15,

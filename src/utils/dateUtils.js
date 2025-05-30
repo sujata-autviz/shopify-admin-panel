@@ -1,13 +1,22 @@
-export const formatDate = (dateString) => {
+export const formatDate = (dateString, includeTime = false) => {
   if (!dateString) return 'N/A';
+  
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    const options = {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    });
-  } catch {
+    };
+    
+    if (includeTime) {
+      options.hour = 'numeric';
+      options.minute = 'numeric';
+      options.hour12 = true;
+    }
+    
+    return date.toLocaleString('en-US', options);
+  } catch (error) {
     return 'Invalid Date';
   }
 };

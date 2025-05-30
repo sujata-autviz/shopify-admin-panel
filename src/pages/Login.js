@@ -52,6 +52,7 @@ const Login = () => {
           <div style={styles.field}>
             <label  htmlFor="username" style={styles.label}>Username</label>
             <input
+              id="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -64,6 +65,7 @@ const Login = () => {
             <label htmlFor="password" style={styles.label}>Password</label>
             <div style={{ position: 'relative' }}>
               <input
+                id="password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

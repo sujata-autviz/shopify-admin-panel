@@ -177,9 +177,17 @@ if (navigator.clipboard?.writeText) {
     },
     loadingContainer: {
       display: "flex",
-      justifyContent: "center",
+      justifyContent: "center", 
       marginTop: 64,
     },
+    spinner: {
+    border: "4px solid #ccc",
+    borderTop: "4px solid #1976d2", 
+    borderRadius: "50%",
+    width: 40,
+    height: 40,
+    animation: "spin 1s linear infinite",
+  },
   };
   if (loading) {
     return (
@@ -198,8 +206,6 @@ if (navigator.clipboard?.writeText) {
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>Connected Stores</h2>
-
-      {loading && <p>Loading...</p>}
       {error && <p style={styles.error}>{error}</p>}
       {snackbarMessage && <p style={styles.snackbar}>{snackbarMessage}</p>}
 
