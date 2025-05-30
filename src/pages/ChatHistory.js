@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { getStores, getChatHistory } from "../services/storeService";
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
 import { formatDate } from "../utils/dateUtils";
+import { width } from "@mui/system";
+
 const ChatHistory = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [stores, setStores] = useState([]);
@@ -13,6 +15,7 @@ const ChatHistory = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [expandedResponses, setExpandedResponses] = useState({});
   const [initialLoad, setInitialLoad] = useState(true);
+  const [groupedChats, setGroupedChats] = useState({});
 
   // Maximum words to show in collapsed state
   const MAX_WORDS_DISPLAY = 50;
@@ -52,6 +55,20 @@ const ChatHistory = () => {
         if (data && Array.isArray(data.chat_history)) {
           setChatHistory(data.chat_history);
 
+          // Group chats by store
+          const grouped = {};
+          data.chat_history.forEach((chat) => {
+            const storeId = chat?.store_id || "unknown";
+            if (!grouped[storeId]) {
+              grouped[storeId] = {
+                storeName: chat?.stores?.shop_domain || "Unknown Store",
+                chats: [],
+              };
+            }
+            grouped[storeId].chats.push(chat);
+          });
+          setGroupedChats(grouped);
+
           // Check if pagination data is provided in the API response
           if (data.pagination && typeof data.pagination.total === "number") {
             setTotalCount(data.pagination.total);
@@ -88,6 +105,7 @@ const ChatHistory = () => {
           setExpandedResponses((prev) => ({ ...prev, ...newExpandedState }));
         } else {
           setChatHistory([]);
+          setGroupedChats({});
           setTotalCount(0);
           console.warn("Chat history data is not in expected format:", data);
         }
@@ -97,6 +115,7 @@ const ChatHistory = () => {
         setError("Failed to load chat history. Please try again later.");
         console.error("Error loading chat history:", err);
         setChatHistory([]);
+        setGroupedChats({});
       } finally {
         setLoading(false);
         setInitialLoad(false);
@@ -122,6 +141,7 @@ const ChatHistory = () => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
   const toggleResponseExpand = (chatId) => {
     setExpandedResponses((prev) => ({
       ...prev,
@@ -145,7 +165,8 @@ const ChatHistory = () => {
     const words = text.split(/\s+/);
     return words.length > MAX_WORDS_DISPLAY;
   };
-  // Add this function to your component
+
+  // Format response content
   const formatResponseContent = (text) => {
     if (!text) return "";
 
@@ -173,11 +194,12 @@ const ChatHistory = () => {
       '<div style="margin: 5px 0;">$1</div>'
     );
 
-    // Format line breaks
-    formattedText = formattedText.replace(/\n/g, "<br />");
+   // Format line breaks
+    formattedText = formattedText.replace(/\n/g, "<div style='height: 5px;'></div>");
 
-   return DOMPurify.sanitize(formattedText);
+    return DOMPurify.sanitize(formattedText);
   };
+
   const styles = {
     // Add these to your styles object
     formattedContent: {
@@ -247,18 +269,12 @@ const ChatHistory = () => {
       animation: "spin 1s linear infinite",
     },
     chatCard: {
-      border: "1px solid #ddd",
       borderRadius: 8,
-      padding: 16,
       marginBottom: 16,
       backgroundColor: "#fff",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
     },
     chatHeader: {
-      display: "flex",
-      justifyContent: "space-between",
-      marginBottom: 12,
-      flexWrap: "wrap",
+      padding: 0,
     },
     storeBadge: {
       backgroundColor: "#1976d2",
@@ -266,8 +282,20 @@ const ChatHistory = () => {
       padding: "4px 8px",
       borderRadius: 4,
       fontSize: 12,
-      marginRight: 8,
+      marginRight: 10,
       display: "inline-block",
+    },
+    storeSection: {
+      marginBottom: 30,
+    },
+    storeTitle: {
+      backgroundColor: "#1976d2",
+      color: "white",
+      padding: "10px 16px",
+      borderRadius: "8px 8px 0 0",
+      fontSize: 16,
+      fontWeight: 500,
+      marginBottom: 15,
     },
     sessionBadge: {
       border: "1px solid #1976d2",
@@ -279,7 +307,9 @@ const ChatHistory = () => {
     },
     timestamp: {
       color: "#666",
-      fontSize: 12,
+      fontSize: 10,
+      paddingLeft: 65,
+      marginBottom: 10,
     },
     messageContainer: {
       marginBottom: 12,
@@ -288,7 +318,6 @@ const ChatHistory = () => {
     },
     messageLabel: {
       fontWeight: 500,
-      marginBottom: 4,
       fontSize: 14,
       display: "flex",
       alignItems: "center",
@@ -297,6 +326,7 @@ const ChatHistory = () => {
       borderRadius: 8,
       padding: "6px 12px",
       fontSize: 15,
+      width: "fit-content",
     },
     customerBubble: {
       backgroundColor: "#f5f5f5",
@@ -340,13 +370,21 @@ const ChatHistory = () => {
       marginTop: 64,
     },
     spinner: {
-    border: "4px solid #ccc",
-    borderTop: "4px solid #1976d2", 
-    borderRadius: "50%",
-    width: 40,
-    height: 40,
-    animation: "spin 1s linear infinite",
-  },
+      border: "4px solid #ccc",
+      borderTop: "4px solid #1976d2",
+      borderRadius: "50%",
+      width: 40,
+      height: 40,
+      animation: "spin 1s linear infinite",
+    },
+    messageBox: {
+      padding: "0 16px 0",
+    },
+    chatBoxMain: {
+      border: "1px solid #ccc",
+      borderRadius: 8,
+      backgroundColor: "#000",
+    }
   };
 
   if (loading && initialLoad) {
@@ -399,84 +437,58 @@ const ChatHistory = () => {
         </div>
       ) : (
         <>
-          {chatHistory.map((chat) => (
-            <div key={chat?.id } style={styles.chatCard}>
-              <div style={styles.chatHeader}>
-                <div>
-                  <span style={styles.storeBadge}>
-                    {chat?.stores?.shop_domain || "Unknown Store"}
-                  </span>
-                  <span style={styles.sessionBadge}>
-                    Session: {(chat?.session_id || "").substring(0, 8)}...
-                  </span>
-                </div>
-                <span style={styles.timestamp}>
-                  {formatDate(chat?.created_at)}
-                </span>
-              </div>
+        
+       <div className="stores-container">
+  {Object.entries(groupedChats).map(([storeId, storeData]) => (
+    <div key={storeId} style={styles.storeSection}>
+      <div style={styles.storeTitle}>{storeData.storeName}</div>
 
-              <div style={styles.messageContainer}>
-                <div style={styles.messageLabel}>Customer:</div>
-                <div
-                  style={{ ...styles.messageBubble, ...styles.customerBubble }}
-                >
-                  {chat?.message || "No message content"}
-                </div>
-              </div>
-
-              <div style={styles.messageContainer}>
-                <div style={styles.messageLabel}>AI Response:</div>
-                <div style={{ ...styles.messageBubble, ...styles.aiBubble }}>
-                  {needsTruncation(chat?.response) ? (
-                    <>
-                      {expandedResponses[chat?.id] ? (
-                        <div
-                          dangerouslySetInnerHTML={{
-                            __html: formatResponseContent(chat?.response),
-                          }}
-                        />
-                      ) : (
-                        <div
-                          dangerouslySetInnerHTML={{
-                            __html: formatResponseContent(
-                              truncateText(chat?.response)
-                            ),
-                          }}
-                        />
-                      )}
-                      <button
-                        style={styles.readMoreBtn}
-                        onClick={() => toggleResponseExpand(chat?.id)}
-                      >
-                        {expandedResponses[chat?.id]
-                          ? "Show Less"
-                          : "Read More"}
-                        <span
-                          style={{
-                            marginLeft: 4,
-                            display: "inline-block",
-                            transform: expandedResponses[chat?.id]
-                              ? "rotate(180deg)"
-                              : "none",
-                          }}
-                        >
-                          ▼
-                        </span>
-                      </button>
-                    </>
-                  ) : (
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: formatResponseContent(
-                          chat?.response || "No response content"
-                        ),
-                      }}
-                    />
-                  )}
-                </div>
-              </div>
+      {storeData.chats.map((chat) => (
+        <div key={chat?.id} style={styles.chatCard}>
+          <div style={styles.chatHeader}>
+            <div>
             </div>
-          ))}
+            <span style={styles.timestamp}>
+              {formatDate(chat?.created_at)}
+            </span>
+          </div>
+          
+          <div style={styles.messageBox}>
+            
+
+             <div style={{...styles.messageContainer, justifyContent: "flex-end"}}>
+              <div
+                style={{
+                  ...styles.messageBubble,
+                  ...styles.customerBubble,
+                }}
+              >
+                {chat?.message || "No message content"}
+              </div>
+               <div style={styles.messageLabel}><img src="/user.png" alt="AI Response" style={{ width: 35, height: 35, borderRadius: 50, }} /></div>
+            </div>
+            <div style={{...styles.messageContainer}}>
+               <div style={styles.messageLabel}> <img src="/ai-bot.png" alt="AI Response" style={{ width: 35, height: 35, borderRadius: 50, }} />
+              </div>
+              <div
+                style={{ ...styles.messageBubble, ...styles.aiBubble }}
+              >
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: formatResponseContent(
+                      chat?.response || "No response content"
+                    ),
+                  }}
+                />
+              </div>
+             
+            </div>
+            </div>
+          </div>
+      ))}
+    </div>
+  ))}
+</div>
 
           <div style={styles.pagination}>
             <select
