@@ -33,22 +33,11 @@ export const getTokenUsage = async () => {
   }
 };
 
-export const getAllChatHistory = async () => {
-  try{
-    const token = getToken();
-    const response = await  axios.get(`${API_URL}/`)
-
-  }catch(error){
-
-  }
-}
-
 export const getChatHistory = async (storeId = null, limit = 10, offset = 0) => {
   try {
     const token = getToken();
     let url = `${API_URL}/chat-history?limit=${limit}&offset=${offset}`;
-    
-    // Add store_id parameter if provided
+
     if (storeId) {
       url += `&store_id=${storeId}`;
     }

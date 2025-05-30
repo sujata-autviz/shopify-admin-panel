@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getTokenUsage } from '../services/storeService';
-
+import { formatDate } from '../utils/dateUtils';
 const TokenUsage = () => {
   const [storesUsage, setStoresUsage] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,25 +33,6 @@ const TokenUsage = () => {
     fetchTokenUsage();
   }, []);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    } catch {
-      return 'Invalid Date';
-    }
-  };
-
-  const maxTokenUsage = storesUsage.length > 0 
-    ? Math.max(...storesUsage.map(s => s?.token_usage || 0), 1) 
-    : 1;
-
-  // Pagination handlers
   const handlePageChange = (direction) => {
     if (direction === 'prev' && page > 0) setPage(page - 1);
     if (direction === 'next' && (page + 1) * rowsPerPage < storesUsage.length) setPage(page + 1);
@@ -181,7 +162,7 @@ const TokenUsage = () => {
               {storesUsage
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((store,index) => (
-                  <tr key={store?.id || Math.random()}>
+                  <tr key={store?.id}>
                     <td style={styles.td}>{page * rowsPerPage + index + 1}</td>
                     <td style={styles.td}>{store?.id ?? 'N/A'}</td>
                     <td style={styles.td}>{store?.shop_domain ?? 'N/A'}</td>

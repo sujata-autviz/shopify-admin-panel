@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { getStores, getChatHistory } from '../services/storeService';
+import React, { useState, useEffect } from "react";
+import { getStores, getChatHistory } from "../services/storeService";
 
 const ChatHistory = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [stores, setStores] = useState([]);
-  const [selectedStore, setSelectedStore] = useState('');
+  const [selectedStore, setSelectedStore] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(3);
   const [totalCount, setTotalCount] = useState(0);
@@ -25,10 +25,10 @@ const ChatHistory = () => {
           setStores(data.stores);
         } else {
           setStores([]);
-          console.warn('Stores data is not in expected format:', data);
+          console.warn("Stores data is not in expected format:", data);
         }
       } catch (err) {
-        console.error('Error loading stores:', err);
+        console.error("Error loading stores:", err);
         setStores([]);
       }
     };
@@ -42,26 +42,30 @@ const ChatHistory = () => {
       try {
         setLoading(true);
         const storeId = selectedStore || null;
-        const data = await getChatHistory(storeId, rowsPerPage, page * rowsPerPage);
-        
+        const data = await getChatHistory(
+          storeId,
+          rowsPerPage,
+          page * rowsPerPage
+        );
+
         if (data && Array.isArray(data.chat_history)) {
           setChatHistory(data.chat_history);
-          
+
           // Check if pagination data is provided in the API response
-          if (data.pagination && typeof data.pagination.total === 'number') {
+          if (data.pagination && typeof data.pagination.total === "number") {
             setTotalCount(data.pagination.total);
-          } 
+          }
           // Fallback to total_count if pagination object is not available
           else if (data.total_count !== undefined) {
             setTotalCount(data.total_count);
-          } 
+          }
           // If no pagination info is provided, estimate based on current data
           else {
             // If we're on the first page and got fewer items than requested,
             // we can assume this is the total count
             if (page === 0 && data.chat_history.length < rowsPerPage) {
               setTotalCount(data.chat_history.length);
-            } 
+            }
             // Otherwise, we need to assume there might be more pages
             else if (data.chat_history.length === rowsPerPage) {
               // We don't know the exact count, so we'll set it to a large number
@@ -72,25 +76,25 @@ const ChatHistory = () => {
               setTotalCount(page * rowsPerPage + data.chat_history.length);
             }
           }
-          
+
           // Initialize expanded state for new items
           const newExpandedState = {};
-          data.chat_history.forEach(chat => {
+          data.chat_history.forEach((chat) => {
             if (chat?.id && expandedResponses[chat.id] === undefined) {
               newExpandedState[chat.id] = false;
             }
           });
-          setExpandedResponses(prev => ({...prev, ...newExpandedState}));
+          setExpandedResponses((prev) => ({ ...prev, ...newExpandedState }));
         } else {
           setChatHistory([]);
           setTotalCount(0);
-          console.warn('Chat history data is not in expected format:', data);
+          console.warn("Chat history data is not in expected format:", data);
         }
-        
-        setError('');
+
+        setError("");
       } catch (err) {
-        setError('Failed to load chat history. Please try again later.');
-        console.error('Error loading chat history:', err);
+        setError("Failed to load chat history. Please try again later.");
+        console.error("Error loading chat history:", err);
         setChatHistory([]);
       } finally {
         setLoading(false);
@@ -108,8 +112,9 @@ const ChatHistory = () => {
   };
 
   const handlePageChange = (direction) => {
-    if (direction === 'prev' && page > 0) setPage(page - 1);
-    if (direction === 'next' && (page + 1) * rowsPerPage < totalCount) setPage(page + 1);
+    if (direction === "prev" && page > 0) setPage(page - 1);
+    if (direction === "next" && (page + 1) * rowsPerPage < totalCount)
+      setPage(page + 1);
   };
 
   const handleRowsPerPageChange = (event) => {
@@ -118,39 +123,39 @@ const ChatHistory = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    
+    if (!dateString) return "N/A";
+
     try {
       const date = new Date(dateString);
-      return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-        hour12: true
+      return date.toLocaleString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
       });
     } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'Invalid Date';
+      console.error("Error formatting date:", error);
+      return "Invalid Date";
     }
   };
 
   const toggleResponseExpand = (chatId) => {
-    setExpandedResponses(prev => ({
+    setExpandedResponses((prev) => ({
       ...prev,
-      [chatId]: !prev[chatId]
+      [chatId]: !prev[chatId],
     }));
   };
 
   // Function to truncate text by word count and add ellipsis
   const truncateText = (text, maxWords = MAX_WORDS_DISPLAY) => {
-    if (!text) return '';
-    
+    if (!text) return "";
+
     const words = text.split(/\s+/);
     if (words.length <= maxWords) return text;
-    
-    return words.slice(0, maxWords).join(' ') + '...';
+
+    return words.slice(0, maxWords).join(" ") + "...";
   };
 
   // Function to check if text needs truncation
@@ -159,11 +164,78 @@ const ChatHistory = () => {
     const words = text.split(/\s+/);
     return words.length > MAX_WORDS_DISPLAY;
   };
+  // Add this function to your component
+  const formatResponseContent = (text) => {
+    if (!text) return "";
 
+    // Format markdown-style links: [text](url)
+    let formattedText = text.replace(
+      /\[([^\]]+)\]\(([^)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: #1976d2; text-decoration: none; font-weight: 500;">$1</a>'
+    );
+
+    // Format image links: ![alt](url)
+    formattedText = formattedText.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)/g,
+      '<div style="margin: 10px 0;"><img src="$2" alt="$1" style="max-width: 100%; border-radius: 4px; max-height: 200px;" /></div>'
+    );
+
+    // Format bold text: **text**
+    formattedText = formattedText.replace(
+      /\*\*([^*]+)\*\*/g,
+      "<strong>$1</strong>"
+    );
+
+    // Format numbered lists
+    formattedText = formattedText.replace(
+      /(\d+\.\s[^\n]+)(\n|$)/g,
+      '<div style="margin: 5px 0;">$1</div>'
+    );
+
+    // Format line breaks
+    formattedText = formattedText.replace(/\n/g, "<br />");
+
+    return formattedText;
+  };
   const styles = {
+    // Add these to your styles object
+    formattedContent: {
+      lineHeight: 1.5,
+    },
+    productItem: {
+      marginBottom: 15,
+      padding: 10,
+      borderRadius: 4,
+    },
+    productImage: {
+      maxWidth: "100%",
+      height: "auto",
+      borderRadius: 4,
+      marginTop: 8,
+      marginBottom: 8,
+    },
+    productLink: {
+      color: "#1976d2",
+      textDecoration: "none",
+      fontWeight: 500,
+    },
+    productPrice: {
+      fontWeight: "bold",
+      margin: "5px 0",
+    },
+    productDescription: {
+      margin: "5px 0 10px 0",
+      color: "#555",
+    },
     container: { padding: "0 20px 20px", fontFamily: "Arial, sans-serif" },
     heading: { margin: "0 0 20px" },
-    error: { color: "red", backgroundColor: "#f8d7da", padding: "12px 16px", borderRadius: 4, marginBottom: 20 },
+    error: {
+      color: "red",
+      backgroundColor: "#f8d7da",
+      padding: "12px 16px",
+      borderRadius: 4,
+      marginBottom: 20,
+    },
     emptyMessage: {
       backgroundColor: "#f9f9f9",
       padding: 20,
@@ -314,93 +386,118 @@ const ChatHistory = () => {
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>Chat History</h2>
-      
+
       {error && <div style={styles.error}>{error}</div>}
-      
+
       <div style={styles.filterContainer}>
-        <select 
-          value={selectedStore} 
+        <select
+          value={selectedStore}
           onChange={handleStoreChange}
           style={styles.select}
         >
           <option value="">All Stores</option>
           {stores.map((store) => (
-            <option key={store?.id || Math.random()} value={store?.id || ''}>
-              {store?.shop_domain || 'Unknown Store'}
+            <option key={store?.id} value={store?.id || ""}>
+              {store?.shop_domain || "Unknown Store"}
             </option>
           ))}
         </select>
-        
-        {loading && (
-          <div style={styles.loadingIndicator}></div>
-        )}
+
+        {loading && <div style={styles.loadingIndicator}></div>}
       </div>
-      
+
       {chatHistory.length === 0 && !loading ? (
         <div style={styles.emptyMessage}>
-          <p style={{ fontWeight: "bold", fontSize: 18, marginBottom: 8 }}>No chat history available</p>
-          <p>{selectedStore ? 'This store has no chat history yet.' : 'No chat history found for any store.'}</p>
+          <p style={{ fontWeight: "bold", fontSize: 18, marginBottom: 8 }}>
+            No chat history available
+          </p>
+          <p>
+            {selectedStore
+              ? "This store has no chat history yet."
+              : "No chat history found for any store."}
+          </p>
         </div>
       ) : (
         <>
           {chatHistory.map((chat) => (
-            <div key={chat?.id || Math.random()} style={styles.chatCard}>
+            <div key={chat?.id } style={styles.chatCard}>
               <div style={styles.chatHeader}>
                 <div>
                   <span style={styles.storeBadge}>
-                    {chat?.stores?.shop_domain || 'Unknown Store'}
+                    {chat?.stores?.shop_domain || "Unknown Store"}
                   </span>
                   <span style={styles.sessionBadge}>
-                    Session: {(chat?.session_id || '').substring(0, 8)}...
+                    Session: {(chat?.session_id || "").substring(0, 8)}...
                   </span>
                 </div>
                 <span style={styles.timestamp}>
                   {formatDate(chat?.created_at)}
                 </span>
               </div>
-              
+
               <div style={styles.messageContainer}>
-                <div style={styles.messageLabel}>
-                  Customer:
-                </div>
-                <div style={{...styles.messageBubble, ...styles.customerBubble}}>
-                  {chat?.message || 'No message content'}
+                <div style={styles.messageLabel}>Customer:</div>
+                <div
+                  style={{ ...styles.messageBubble, ...styles.customerBubble }}
+                >
+                  {chat?.message || "No message content"}
                 </div>
               </div>
-              
-              
+
               <div style={styles.messageContainer}>
-                <div style={styles.messageLabel}>
-                  AI Response:
-                </div>
-                <div style={{...styles.messageBubble, ...styles.aiBubble}}>
+                <div style={styles.messageLabel}>AI Response:</div>
+                <div style={{ ...styles.messageBubble, ...styles.aiBubble }}>
                   {needsTruncation(chat?.response) ? (
                     <>
                       {expandedResponses[chat?.id] ? (
-                        <div>{chat?.response}</div>
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: formatResponseContent(chat?.response),
+                          }}
+                        />
                       ) : (
-                        <div>{truncateText(chat?.response)}</div>
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: formatResponseContent(
+                              truncateText(chat?.response)
+                            ),
+                          }}
+                        />
                       )}
-                      <button 
+                      <button
                         style={styles.readMoreBtn}
                         onClick={() => toggleResponseExpand(chat?.id)}
                       >
-                        {expandedResponses[chat?.id] ? 'Show Less' : 'Read More'}
-                        <span style={{
-                          marginLeft: 4,
-                          display: 'inline-block',
-                          transform: expandedResponses[chat?.id] ? 'rotate(180deg)' : 'none'
-                        }}>▼</span>
+                        {expandedResponses[chat?.id]
+                          ? "Show Less"
+                          : "Read More"}
+                        <span
+                          style={{
+                            marginLeft: 4,
+                            display: "inline-block",
+                            transform: expandedResponses[chat?.id]
+                              ? "rotate(180deg)"
+                              : "none",
+                          }}
+                        >
+                          ▼
+                        </span>
                       </button>
                     </>
                   ) : (
-                    <div>{chat?.response || 'No response content'}</div>
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: formatResponseContent(
+                          chat?.response || "No response content"
+                        ),
+                      }}
+                    />
                   )}
                 </div>
               </div>
             </div>
           ))}
-          
+
           <div style={styles.pagination}>
             <select
               value={rowsPerPage}
@@ -412,31 +509,33 @@ const ChatHistory = () => {
               <option value={10}>10</option>
               <option value={25}>25</option>
             </select>
-            
+
             <div>
               <button
-                onClick={() => handlePageChange('prev')}
+                onClick={() => handlePageChange("prev")}
                 disabled={page === 0}
                 style={{
                   ...styles.paginationBtn,
-                  ...(page === 0 ? styles.paginationBtnDisabled : {})
+                  ...(page === 0 ? styles.paginationBtnDisabled : {}),
                 }}
               >
                 Previous
               </button>
               <button
-                onClick={() => handlePageChange('next')}
+                onClick={() => handlePageChange("next")}
                 disabled={(page + 1) * rowsPerPage >= totalCount}
                 style={{
                   ...styles.paginationBtn,
-                  ...((page + 1) * rowsPerPage >= totalCount ? styles.paginationBtnDisabled : {})
+                  ...((page + 1) * rowsPerPage >= totalCount
+                    ? styles.paginationBtnDisabled
+                    : {}),
                 }}
               >
                 Next
               </button>
             </div>
-            
-            <div style={{ fontSize: 14, color: '#666' }}>
+
+            <div style={{ fontSize: 14, color: "#666" }}>
               Page {page + 1} of {Math.ceil(totalCount / rowsPerPage)}
             </div>
           </div>

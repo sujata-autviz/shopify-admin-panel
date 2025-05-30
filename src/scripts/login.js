@@ -1,13 +1,14 @@
+const API_URL = process.env.REACT_APP_API_URL || 'https://mavexa.autsync.info/admin';
+
+
 document.addEventListener('DOMContentLoaded', function() {
   const loginForm = document.getElementById('login-form');
   const errorMessage = document.getElementById('error-message');
   const loginButton = document.getElementById('login-button');
-  const loadingIndicator = document.getElementById('loading-indicator');
   const passwordInput = document.getElementById('password');
   const togglePassword = document.getElementById('toggle-password');
   const toggleIcon = togglePassword.querySelector('.eye-icon');
-  
-  // Username and password state
+
   let username = '';
   let password = '';
   
@@ -47,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     try {
       // Replace with your actual API endpoint
-      const response = await fetch('https://mavexa.autsync.info/admin/login', {
+      const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -4,7 +4,7 @@ import IconButton from "@mui/material/IconButton";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-
+import { formatDate } from "../utils/dateUtils";
 const Stores = () => {
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,12 +19,11 @@ const Stores = () => {
       try {
         setLoading(true);
         const data = await getStores();
-
         if (data && Array.isArray(data.stores)) {
           setStores(data.stores);
           const visibility = {};
           data.stores.forEach((store) => {
-            if (store && store.id) visibility[store.id] = false;
+            if (store?.id) visibility[store.id] = false;
           });
           setShowTokens(visibility);
         } else {
@@ -43,19 +42,6 @@ const Stores = () => {
     fetchStores();
   }, []);
 
- const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    } catch {
-      return 'Invalid Date';
-    }
-  };
   const toggleTokenVisibility = (id) => {
     setShowTokens((prev) => ({ ...prev, [id]: !prev[id] }));
   };
@@ -65,9 +51,51 @@ const Stores = () => {
       setSnackbarMessage("No token available");
       return;
     }
-    navigator.clipboard.writeText(text);
-    setSnackbarMessage("Token copied to clipboard!");
-    setTimeout(() => setSnackbarMessage(""), 2000);
+
+if (navigator.clipboard?.writeText) {
+      // Modern asynchronous API
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          setSnackbarMessage("Token copied to clipboard!");
+          setTimeout(() => setSnackbarMessage(""), 2000);
+        })
+        .catch(() => {
+          fallbackCopyText(text);
+        });
+    } else {
+      // Fallback for older browsers
+      fallbackCopyText(text);
+    }
+  };
+
+  const fallbackCopyText = (text) => {
+    // Create a temporary textarea to copy the text from
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+
+    // Avoid scrolling to bottom
+    textArea.style.position = "fixed";
+    textArea.style.top = 0;
+    textArea.style.left = 0;
+
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      const successful = document.execCommand("copy");
+      if (successful) {
+        setSnackbarMessage("Token copied to clipboard!");
+        setTimeout(() => setSnackbarMessage(""), 2000);
+      } else {
+        setSnackbarMessage("Failed to copy token");
+      }
+    } catch (err) {
+      setSnackbarMessage("Failed to copy token");
+    }
+
+    document.body.removeChild(textArea);
   };
 
   const handlePageChange = (direction) => {
@@ -106,7 +134,12 @@ const Stores = () => {
       fontWeight: "bold",
       textAlign: "left",
     },
-    td: { border: "1px solid #ddd", padding: 10, textAlign: "left", fontSize: 14 },
+    td: {
+      border: "1px solid #ddd",
+      padding: 10,
+      textAlign: "left",
+      fontSize: 14,
+    },
     btn: {
       padding: "8px 10px",
       marginLeft: 10,
@@ -126,7 +159,7 @@ const Stores = () => {
       borderRadius: 4,
       fontSize: 12,
     },
-     btnDisabled: {
+    btnDisabled: {
       cursor: "not-allowed",
       opacity: 0.7,
     },
@@ -142,7 +175,25 @@ const Stores = () => {
       borderRadius: 4,
       border: "1px solid #ccc",
     },
+    loadingContainer: {
+      display: "flex",
+      justifyContent: "center",
+      marginTop: 64,
+    },
   };
+  if (loading) {
+    return (
+      <div style={styles.loadingContainer}>
+        <div style={styles.spinner} />
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
@@ -173,7 +224,7 @@ const Stores = () => {
             <tbody>
               {stores
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((store,index) => (
+                .map((store, index) => (
                   <tr key={store.id}>
                     <td style={styles.td}>{page * rowsPerPage + index + 1}</td>
                     <td style={styles.td}>{store.id}</td>
@@ -183,20 +234,24 @@ const Stores = () => {
                       {showTokens[store.id]
                         ? store.access_token
                         : "•••••••••••••••"}
-                        <div>
-                     <IconButton
-                      onClick={() => toggleTokenVisibility(store.id)}
-                      size="small"
-                    >
-                      {showTokens[store.id] ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                    </IconButton>
-                                        <IconButton
-                      onClick={() => copyToClipboard(store.access_token, store.shop_domain)}
-                      size="small"
-                    >
-                      <ContentCopyIcon />
-                    </IconButton>
-                    </div>
+                      <div>
+                        <IconButton
+                          onClick={() => toggleTokenVisibility(store.id)}
+                          size="small"
+                        >
+                          {showTokens[store.id] ? (
+                            <VisibilityOffIcon />
+                          ) : (
+                            <VisibilityIcon />
+                          )}
+                        </IconButton>
+                        <IconButton
+                          onClick={() => copyToClipboard(store.access_token)}
+                          size="small"
+                        >
+                          <ContentCopyIcon />
+                        </IconButton>
+                      </div>
                     </td>
                     <td style={styles.td}>
                       {store.scope
@@ -213,6 +268,33 @@ const Stores = () => {
           </table>
 
           <div style={styles.pagination}>
+            <div className="pagination-no">
+              <button
+                style={{
+                  ...styles.btn,
+                  ...(page === 0 ? styles.btnDisabled : {}),
+                }}
+                onClick={() => handlePageChange("prev")}
+                disabled={page === 0}
+              >
+                Previous
+              </button>
+                <div style={{ fontSize: 14, color: '#666' }}>
+              Page {page + 1} of {Math.ceil(stores.length / rowsPerPage)}
+            </div>
+              <button
+                style={{
+                  ...styles.btn,
+                  ...((page + 1) * rowsPerPage >= stores.length
+                    ? styles.btnDisabled
+                    : {}),
+                }}
+                onClick={() => handlePageChange("next")}
+                disabled={(page + 1) * rowsPerPage >= stores.length}
+              >
+                Next
+              </button>
+            </div>
             <select
               value={rowsPerPage}
               onChange={handleRowsPerPageChange}
@@ -222,31 +304,7 @@ const Stores = () => {
               <option value={10}>10</option>
               <option value={25}>25</option>
             </select>
-          <div>
-              <button
-                style={{
-                  ...styles.btn,
-                  ...(page === 0 ? styles.btnDisabled : {})
-                }}
-                onClick={() => handlePageChange('prev')}
-                disabled={page === 0}
-              >
-                Previous
-              </button>
-              <button
-                style={{
-                  ...styles.btn,
-                  ...((page + 1) * rowsPerPage >= stores.length ? styles.btnDisabled : {})
-                }}
-                onClick={() => handlePageChange('next')}
-                disabled={(page + 1) * rowsPerPage >= stores.length}
-              >
-                Next
-              </button>
-            </div>
-              <div style={{ fontSize: 14, color: '#666' }}>
-              Page {page + 1} of {Math.ceil(stores.length / rowsPerPage)}
-            </div>
+          
           </div>
         </>
       )}

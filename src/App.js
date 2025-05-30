@@ -12,7 +12,7 @@ import TokenUsage from './pages/TokenUsage';
 import ChatHistory from './pages/ChatHistory';
 import DashboardLayout from './layouts/DashboardLayout';
 import './App.css';
-
+import { getPageTitle } from './utils/navigation';
 const theme = createTheme({
   palette: {
     primary: {
@@ -41,21 +41,10 @@ const TitleUpdater = () => {
   const location = useLocation();
   
   useEffect(() => {
-    const getPageTitle = () => {
-      const path = location.pathname;
-      
-      if (path.includes('/dashboard')) return 'Dashboard';
-      if (path.includes('/stores')) return 'Stores';
-      if (path.includes('/token-usage')) return 'Token Usage';
-      if (path.includes('/chat-history')) return 'Chat History';
-      if (path.includes('/users')) return 'Users';
-      if (path.includes('/settings')) return 'Settings';
-      if (path.includes('/login')) return 'Login';
-      
-      return 'Dashboard';
-    };
     
-    document.title = `${getPageTitle()} | Mavexa Admin`;
+    const title = getPageTitle(location.pathname);
+    
+    document.title = `${title} | Mavexa Admin`;
   }, [location]);
   
   return null;

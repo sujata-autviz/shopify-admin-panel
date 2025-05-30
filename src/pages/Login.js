@@ -4,12 +4,6 @@ import { login } from '../services/authService';
 import { AuthContext } from '../context/AuthContext';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-
-
-
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -47,10 +41,6 @@ const Login = () => {
     }
   };
 
-  const handleTogglePassword = () => {
-    setShowPassword(!showPassword);
-  };
-
     return (
     <div style={styles.wrapper}>
       <div style={styles.container}>
@@ -60,7 +50,7 @@ const Login = () => {
 
         <form onSubmit={handleSubmit}>
           <div style={styles.field}>
-            <label style={styles.label}>Username</label>
+            <label  htmlFor="username" style={styles.label}>Username</label>
             <input
               type="text"
               value={username}
@@ -71,7 +61,7 @@ const Login = () => {
           </div>
 
           <div style={styles.field}>
-            <label style={styles.label}>Password</label>
+            <label htmlFor="password" style={styles.label}>Password</label>
             <div style={{ position: 'relative' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
