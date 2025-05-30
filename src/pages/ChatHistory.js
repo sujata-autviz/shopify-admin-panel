@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getStores, getChatHistory } from "../services/storeService";
 import DOMPurify from 'dompurify';
+import { formatDate } from "../utils/dateUtils";
 const ChatHistory = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [stores, setStores] = useState([]);
